@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReservationMode {
+  TIMED
+  UNTIMED
+}
+
+enum ReservationStatus {
+  PENDING_APPROVAL
+  CONFIRMED
+  SEATED
+  CLEARED
+  NO_SHOW
+  WALK_IN
+}
+
+enum TableShape {
+  RECTANGLE
+  CIRCLE
+  SQUARE
+  BOOTH
+}
+
+model Tenant {
+  id              String          @id @default(uuid())
+  slug            String          @unique
+  name            String
+  reservationMode ReservationMode @default(TIMED)
+  password        String?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  floorPlans      FloorPlan[]
+  reservations    Reservation[]
+}
+
+model FloorPlan {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  tables    Table[]
+}
+
+model Table {
+  id          String   @id @default(uuid())
+  floorPlanId String
+  name        String
+  
+  // Visual & Logical properties
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  capacity    Int
+  shape       TableShape @default(RECTANGLE)
+
+  // Soft delete
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  floorPlan   FloorPlan @relation(fields: [floorPlanId], references: [id])
+  
+  // Many-to-Many relation to handle table merging
+  reservations ReservationTable[]
+}
+
+model Reservation {
+  id              String            @id @default(uuid())
+  tenantId        String
+  status          ReservationStatus @default(PENDING_APPROVAL)
+  
+  // Customer Info
+  customerName    String
+  phoneNumber     String
+  email           String
+  
+  // Time fields
+  startTime       DateTime
+  endTime         DateTime? // Optional for UNTIMED mode
+
+  // Audit
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+  
+  // Many-to-Many relation
+  tables          ReservationTable[]
+}
+
+// Explicit Join Model for Many-to-Many Table Merging
+model ReservationTable {
+  reservationId String
+  tableId       String
+
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  table         Table       @relation(fields: [tableId], references: [id], onDelete: Restrict)
+
+  @@id([reservationId, tableId])
+}
