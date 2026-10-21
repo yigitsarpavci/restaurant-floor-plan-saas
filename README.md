@@ -1,4 +1,4 @@
-# Restaurant Floor Plan SaaS (Seated)
+# Restaurant Floor Plan SaaS
 
 A modern, multi-tenant SaaS platform designed for restaurants to manage floor plans, reservations, and live operations in real-time. Built with Next.js 16 (App Router), Prisma, and Zustand for highly interactive drag-and-drop table management.
 
@@ -61,8 +61,8 @@ A modern, multi-tenant SaaS platform designed for restaurants to manage floor pl
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yigitsarpavci/seated.git
-cd seated
+git clone https://github.com/yigitsarpavci/restaurant-floor-plan-saas.git
+cd restaurant-floor-plan-saas
 ```
 
 ### 2. Install dependencies
