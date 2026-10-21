@@ -1,4 +1,4 @@
-# Seated - Restaurant Management & Live-Ops SaaS
+# Restaurant Floor Plan SaaS (Seated)
 
 A modern, multi-tenant SaaS platform designed for restaurants to manage floor plans, reservations, and live operations in real-time. Built with Next.js 16 (App Router), Prisma, and Zustand for highly interactive drag-and-drop table management.
 
