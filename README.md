@@ -1,5 +1,12 @@
 # Restaurant Operations & Table Management SaaS
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black?logo=next.js&logoColor=white)](#tech-stack)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)](#tech-stack)
+[![PostgreSQL | Prisma](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20Prisma-336791?logo=postgresql&logoColor=white)](#tech-stack)
+[![Zustand](https://img.shields.io/badge/State-Zustand-443E38)](#tech-stack)
+[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white)](#tech-stack)
+
 A modern, multi-tenant SaaS platform designed for restaurants to manage floor plans, reservations, and live operations in real-time. Built with Next.js 16 (App Router), Prisma, and Zustand for highly interactive drag-and-drop table management.
 
 ---
@@ -89,4 +96,18 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ---
 
-Built by Yigit Sarp Avci.
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## Author
+
+**Yiğit Sarp Avcı**  
+Computer Engineering Student @ Boğaziçi University  
+[GitHub Profile](https://github.com/yigitsarpavci) · [LinkedIn](https://www.linkedin.com/in/yigitsarpavci)
+
+---
+
+*Developed by Yiğit Sarp Avcı*
