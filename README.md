@@ -105,7 +105,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **Hashed passwords:** restaurant passwords are stored with bcrypt. Legacy plaintext rows are upgraded transparently on first successful login.
 - **Authorization on every Server Action:** tenant management is admin-only; floor-plan, reservation and live-ops actions verify the caller owns the tenant (`lib/authz.ts`). Public guests can only create reservations.
 - **Fail-fast configuration:** the app refuses to sign sessions in production without `SESSION_SECRET`, and the admin login is disabled without `ADMIN_PASSWORD`.
-- Covered by `npm test` (Vitest): password hashing/legacy upgrade, admin password check and session signing/tampering.
+- Covered by `npm test` (Vitest, 21 tests): password hashing and legacy-hash upgrade, admin password check, session signing/tampering, the tenant/reservation/floor-plan authorization guards, and Zod booking validation. Runs in CI on every push.
 
 ---
 
