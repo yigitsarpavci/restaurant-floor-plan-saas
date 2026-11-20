@@ -25,6 +25,39 @@ A modern, multi-tenant SaaS platform designed for restaurants to manage floor pl
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart TB
+    Guest["Guest<br/>/booking/tenantSlug"] --> MW
+    Owner["Restaurant owner<br/>/liveops"] --> MW
+    Admin["Platform admin<br/>/manage"] --> MW
+
+    MW["Next.js middleware<br/>verifies the signed session cookie"] --> Pages["App Router pages<br/>Zustand + react-rnd canvas"]
+    Pages --> Actions["Server Actions<br/>auth, tenant, floor-plan, live-ops, booking, alerts"]
+    Actions --> Guards["lib/authz.ts<br/>admin / tenant ownership checks"]
+    Guards --> Prisma["Prisma ORM"]
+    Prisma --> PG[("PostgreSQL<br/>tenant-isolated rows")]
+```
+
+### Reservation lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING_APPROVAL: guest submits a request
+    [*] --> WALK_IN: host seats a walk-in
+    PENDING_APPROVAL --> CONFIRMED: owner approves
+    PENDING_APPROVAL --> [*]: owner rejects (request removed)
+    CONFIRMED --> SEATED: guests arrive
+    CONFIRMED --> NO_SHOW: grace period expires
+    SEATED --> CLEARED: table cleared
+    WALK_IN --> CLEARED: table cleared
+    NO_SHOW --> [*]: table freed
+    CLEARED --> [*]: table free for new bookings
+```
+
+---
+
 ## Core Features
 
 - **Multi-Tenant Architecture:** Secure isolation between different restaurant tenants using slug-based routing (`/manage/[tenantSlug]`).
