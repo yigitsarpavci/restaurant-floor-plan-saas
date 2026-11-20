@@ -1,0 +1,35 @@
+# Local stack: PostgreSQL + the app. Usage: `docker compose up --build`
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: seated
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d seated"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/seated
+      # Replace both before exposing the app anywhere (see .env.example).
+      SESSION_SECRET: change-me-in-real-deployments
+      ADMIN_PASSWORD: change-me-too
+    ports:
+      - "3000:3000"
+    # Applies the schema, then starts the production server.
+    command: ["sh", "-c", "npx prisma db push && npm start"]
+
+volumes:
+  pgdata:

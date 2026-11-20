@@ -93,6 +93,12 @@ npx prisma db push
 npx prisma db seed
 ```
 
+### Docker (optional)
+```bash
+docker compose up --build   # PostgreSQL + the production build on http://localhost:3000
+```
+Set real values for `SESSION_SECRET` and `ADMIN_PASSWORD` in `docker-compose.yml` before exposing it anywhere. CI verifies on every push that the image builds.
+
 ### 4. Run Development Server
 ```bash
 npm run dev
