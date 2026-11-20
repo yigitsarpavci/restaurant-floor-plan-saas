@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { createHash, randomBytes, timingSafeEqual } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -13,10 +13,16 @@ function isBcryptHash(value: string): boolean {
   return /^\$2[aby]\$\d{2}\$/.test(value);
 }
 
+/** Constant-time string comparison (pads to equal length; no hashing of the secret involved). */
 function safeEqual(a: string, b: string): boolean {
-  const da = createHash('sha256').update(a).digest();
-  const db = createHash('sha256').update(b).digest();
-  return timingSafeEqual(da, db);
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  const len = Math.max(bufA.length, bufB.length, 1);
+  const padA = Buffer.alloc(len);
+  const padB = Buffer.alloc(len);
+  bufA.copy(padA);
+  bufB.copy(padB);
+  return timingSafeEqual(padA, padB) && bufA.length === bufB.length;
 }
 
 /**
