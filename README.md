@@ -14,6 +14,15 @@ A modern, multi-tenant SaaS platform designed for restaurants to manage floor pl
 
 ---
 
+## Quick Start
+
+```bash
+docker compose up --build
+# http://localhost:3000, sign in as `admin` with the ADMIN_PASSWORD set in docker-compose.yml
+```
+
+---
+
 ## Tech Stack
 
 - **Framework:** [Next.js 16 (App Router)](https://nextjs.org/)
