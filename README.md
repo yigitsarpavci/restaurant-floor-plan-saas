@@ -23,6 +23,21 @@ docker compose up --build
 
 ---
 
+## Screenshots
+
+Captured from a production build with the seeded `demo` restaurant.
+
+![Tour](docs/screenshots/tour.gif)
+
+| | |
+|---|---|
+| ![Live operations: pending request, seated booth, table status](docs/screenshots/liveops.jpg) | ![Floor-plan designer (drag, drop, resize)](docs/screenshots/floorplan.jpg) |
+| *Live operations: pending request, seated booth, table status* | *Floor-plan designer (drag, drop, resize)* |
+| ![Platform admin console (tenants)](docs/screenshots/manage.jpg) |  |
+| *Platform admin console (tenants)* |  |
+
+---
+
 ## Tech Stack
 
 - **Framework:** [Next.js 16 (App Router)](https://nextjs.org/)
@@ -130,7 +145,7 @@ SESSION_SECRET=""   # required in production (openssl rand -base64 32)
 ADMIN_PASSWORD=""   # required in production; defaults to "admin" in development only
 ```
 
-Then, push the database schema (and optionally seed a `demo` restaurant, password `demo1234`):
+Then, push the database schema (and optionally seed a `demo` restaurant with 8 tables and sample reservations, owner password `demo1234`; the seed is idempotent):
 ```bash
 npx prisma db push
 npx prisma db seed
