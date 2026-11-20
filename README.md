@@ -142,6 +142,11 @@ docker compose up --build   # PostgreSQL + the production build on http://localh
 ```
 Set real values for `SESSION_SECRET` and `ADMIN_PASSWORD` in `docker-compose.yml` before exposing it anywhere. CI verifies on every push that the image builds.
 
+A prebuilt image is published to GitHub Container Registry:
+```bash
+docker pull ghcr.io/yigitsarpavci/restaurant-floor-plan-saas:latest
+```
+
 ### 4. Run Development Server
 ```bash
 npm run dev
