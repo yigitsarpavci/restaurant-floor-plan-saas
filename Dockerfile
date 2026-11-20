@@ -3,6 +3,8 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
+# The postinstall script runs `prisma generate`, which needs the schema.
+COPY prisma ./prisma
 RUN npm ci
 COPY . .
 # A placeholder is enough to generate the Prisma client and build; the real URL is provided at runtime.
