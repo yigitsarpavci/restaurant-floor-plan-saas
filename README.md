@@ -1,5 +1,6 @@
 # Restaurant Operations & Table Management SaaS
 
+[![Coverage](https://img.shields.io/badge/coverage-98%25%20security%20layer-brightgreen)](#testing)
 [![CI](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/actions/workflows/ci.yml)
 [![Security: CodeQL | Dependabot](https://img.shields.io/badge/Security-CodeQL%20%7C%20Dependabot%20%7C%20Secret%20scanning-success?logo=github)](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/security)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -153,7 +154,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ## Testing
 
 ```bash
-npm test      # Vitest: authorization guards, password hashing, sessions, booking validation (21 tests)
+npm test              # Vitest: authorization guards, password hashing, sessions, booking validation (21 tests)
+npm run test:coverage # same, with a coverage gate (98% of lib/, the security and validation layer; CI fails below 80%)
 npm run build # production build, also run in CI
 ```
 
