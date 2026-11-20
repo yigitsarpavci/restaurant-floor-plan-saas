@@ -1,5 +1,7 @@
 # Restaurant Operations & Table Management SaaS
 
+[![CI](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/actions/workflows/ci.yml)
+[![Security: CodeQL | Dependabot](https://img.shields.io/badge/Security-CodeQL%20%7C%20Dependabot%20%7C%20Secret%20scanning-success?logo=github)](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/security)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black?logo=next.js&logoColor=white)](#tech-stack)
 [![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)](#tech-stack)
@@ -106,6 +108,17 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **Authorization on every Server Action:** tenant management is admin-only; floor-plan, reservation and live-ops actions verify the caller owns the tenant (`lib/authz.ts`). Public guests can only create reservations.
 - **Fail-fast configuration:** the app refuses to sign sessions in production without `SESSION_SECRET`, and the admin login is disabled without `ADMIN_PASSWORD`.
 - Covered by `npm test` (Vitest, 21 tests): password hashing and legacy-hash upgrade, admin password check, session signing/tampering, the tenant/reservation/floor-plan authorization guards, and Zod booking validation. Runs in CI on every push.
+
+---
+
+## Testing
+
+```bash
+npm test      # Vitest: authorization guards, password hashing, sessions, booking validation (21 tests)
+npm run build # production build, also run in CI
+```
+
+GitHub Actions runs both on every push (see the CI badge above).
 
 ---
 
