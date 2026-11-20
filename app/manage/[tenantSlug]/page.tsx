@@ -77,7 +77,7 @@ export default async function TenantManagePage({ params }: TenantManageProps) {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-green-900 dark:text-green-400 uppercase tracking-wider mb-1">Password</label>
-                      <AdminPasswordReset tenantId={tenant.id} currentPassword={tenant.password || ''} />
+                      <AdminPasswordReset tenantId={tenant.id} hasPassword={!!tenant.password} />
                     </div>
                   </div>
                 </div>

@@ -78,7 +78,7 @@ export default function LoginPage() {
         </form>
         
         <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>For admin panel, use username: <strong className="dark:text-gray-200">admin</strong> (no password required)</p>
+          <p>For the admin panel, sign in as <strong className="dark:text-gray-200">admin</strong> with the configured admin password</p>
           <p className="mt-2">For restaurant owners, use your generated username and password.</p>
         </div>
       </div>

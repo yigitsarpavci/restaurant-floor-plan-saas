@@ -2,10 +2,13 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { requireAdmin } from '@/lib/authz';
+import { MIN_PASSWORD_LENGTH, generateTemporaryPassword, hashPassword } from '@/lib/password';
 
 export async function createTenant(data: { name: string; slug: string }) {
+  await requireAdmin();
   try {
-    const password = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const password = generateTemporaryPassword();
 
     // 1. Create the tenant
     const tenant = await prisma.tenant.create({
@@ -13,7 +16,7 @@ export async function createTenant(data: { name: string; slug: string }) {
         name: data.name,
         slug: data.slug,
         reservationMode: 'UNTIMED',
-        password: password,
+        password: await hashPassword(password),
       },
     });
 
@@ -37,10 +40,14 @@ export async function createTenant(data: { name: string; slug: string }) {
 }
 
 export async function adminUpdatePassword(tenantId: string, newPassword: string) {
+  await requireAdmin();
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return { success: false, error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
   try {
     await prisma.tenant.update({
       where: { id: tenantId },
-      data: { password: newPassword }
+      data: { password: await hashPassword(newPassword) }
     });
     revalidatePath('/manage');
     revalidatePath(`/manage/[tenantSlug]`, 'page');
@@ -52,6 +59,7 @@ export async function adminUpdatePassword(tenantId: string, newPassword: string)
 }
 
 export async function updateTenant(tenantId: string, data: { name: string; slug: string }) {
+  await requireAdmin();
   try {
     const existing = await prisma.tenant.findUnique({
       where: { slug: data.slug }
@@ -76,6 +84,7 @@ export async function updateTenant(tenantId: string, data: { name: string; slug:
 }
 
 export async function deleteTenant(tenantId: string) {
+  await requireAdmin();
   try {
     const floorPlans = await prisma.floorPlan.findMany({ where: { tenantId }, select: { id: true } });
     const floorPlanIds = floorPlans.map(f => f.id);

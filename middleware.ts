@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { SESSION_COOKIE, verifySession } from '@/lib/session';
 
 export const config = {
   matcher: [
@@ -14,12 +15,13 @@ export const config = {
   ],
 };
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   const path = url.pathname;
   
-  // Get role from cookie
-  const role = req.cookies.get('role')?.value;
+  // Role comes from a signed, httpOnly session cookie (never from a client-editable value)
+  const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
+  const role = session?.role === 'admin' ? 'admin' : session?.role === 'owner' ? 'owner' : undefined;
 
   // Protect /manage route (only admin)
   if (path.startsWith('/manage')) {

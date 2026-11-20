@@ -78,14 +78,17 @@ npm install
 ```
 
 ### 3. Database Setup
-Ensure you have your environment variables configured in a `.env` file:
+Copy `.env.example` to `.env` and fill it in:
 ```env
 DATABASE_URL="postgresql://user:password@localhost:5432/seated"
+SESSION_SECRET=""   # required in production (openssl rand -base64 32)
+ADMIN_PASSWORD=""   # required in production; defaults to "admin" in development only
 ```
 
-Then, push the database schema:
+Then, push the database schema (and optionally seed a `demo` restaurant, password `demo1234`):
 ```bash
 npx prisma db push
+npx prisma db seed
 ```
 
 ### 4. Run Development Server
@@ -93,6 +96,16 @@ npx prisma db push
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+---
+
+## Security Model
+
+- **Signed sessions:** login issues an `httpOnly`, `SameSite=Lax` (and `Secure` in production) JWT cookie signed with `SESSION_SECRET` (`jose`, HS256). Roles and tenant IDs are never read from client-editable cookies.
+- **Hashed passwords:** restaurant passwords are stored with bcrypt. Legacy plaintext rows are upgraded transparently on first successful login.
+- **Authorization on every Server Action:** tenant management is admin-only; floor-plan, reservation and live-ops actions verify the caller owns the tenant (`lib/authz.ts`). Public guests can only create reservations.
+- **Fail-fast configuration:** the app refuses to sign sessions in production without `SESSION_SECRET`, and the admin login is disabled without `ADMIN_PASSWORD`.
+- Covered by `npm test` (Vitest): password hashing/legacy upgrade, admin password check and session signing/tampering.
 
 ---
 

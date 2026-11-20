@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { TableShape } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { requireFloorPlanAccess } from '@/lib/authz';
 
 export async function saveFloorPlanLayout(
   floorPlanId: string, 
@@ -17,7 +18,7 @@ export async function saveFloorPlanLayout(
     shape: string;
   }[]
 ) {
-  // In a real app, verify tenant authentication and permissions here.
+  await requireFloorPlanAccess(floorPlanId);
   
   const incomingTableIds = tables.map(t => t.id);
 

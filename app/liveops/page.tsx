@@ -2,14 +2,14 @@ import LiveOpsDashboard from '@/components/live-ops/LiveOpsDashboard';
 import prisma from '@/lib/prisma';
 import { LiveTable } from '@/components/live-ops/LiveFloorPlan';
 import { PendingReservation } from '@/components/live-ops/LiveOpsDashboard';
-import { cookies } from 'next/headers';
+import { getSession } from '@/lib/authz';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function LiveOpsPage() {
-  const cookieStore = await cookies();
-  const tenantId = cookieStore.get('tenantId')?.value;
+  const session = await getSession();
+  const tenantId = session?.role === 'owner' ? session.tenantId : undefined;
 
   if (!tenantId) {
     redirect('/');

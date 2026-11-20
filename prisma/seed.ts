@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,7 @@ async function main() {
       name: 'Demo Restaurant',
       slug: 'demo',
       reservationMode: 'TIMED',
+      password: await bcrypt.hash(process.env.SEED_DEMO_PASSWORD ?? 'demo1234', 10),
     },
   });
 

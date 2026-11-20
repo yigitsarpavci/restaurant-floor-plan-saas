@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { ReservationStatus, ReservationMode } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { requireReservationAccess, requireTenantAccess } from '@/lib/authz';
 
 export interface DashboardAlert {
   id: string;
@@ -13,6 +14,7 @@ export interface DashboardAlert {
 }
 
 export async function fetchLiveAlerts(tenantId: string) {
+  await requireTenantAccess(tenantId);
   const now = new Date();
   const alerts: DashboardAlert[] = [];
 
@@ -73,6 +75,7 @@ export async function fetchLiveAlerts(tenantId: string) {
 }
 
 export async function markNoShow(reservationId: string) {
+  await requireReservationAccess(reservationId);
   // Marking NO_SHOW instantly frees up the table since it's no longer CONFIRMED/SEATED
   await prisma.reservation.update({
     where: { id: reservationId },
@@ -83,11 +86,13 @@ export async function markNoShow(reservationId: string) {
 }
 
 export async function keepHolding(reservationId: string) {
+  await requireReservationAccess(reservationId);
   // Logic to snooze or track that staff approved a grace period extension.
   return { success: true };
 }
 
 export async function markCleared(reservationId: string) {
+  await requireReservationAccess(reservationId);
   // Instantly unlocks the table allowing concurrent walk-ins or pending approvals
   await prisma.reservation.update({
     where: { id: reservationId },

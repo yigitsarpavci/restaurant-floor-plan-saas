@@ -5,10 +5,10 @@ import { adminUpdatePassword } from '@/app/actions/tenant';
 
 interface AdminPasswordResetProps {
   tenantId: string;
-  currentPassword: string;
+  hasPassword: boolean;
 }
 
-export default function AdminPasswordReset({ tenantId, currentPassword }: AdminPasswordResetProps) {
+export default function AdminPasswordReset({ tenantId, hasPassword }: AdminPasswordResetProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,12 +29,12 @@ export default function AdminPasswordReset({ tenantId, currentPassword }: AdminP
   if (!isEditing) {
     return (
       <div className="flex items-center justify-between bg-white dark:bg-gray-800 px-4 py-2.5 rounded-lg border border-green-200 dark:border-green-800">
-        <div className="font-mono text-sm font-bold tracking-widest text-gray-900 dark:text-white">{currentPassword || 'Not Set'}</div>
+        <div className="font-mono text-sm font-bold tracking-widest text-gray-900 dark:text-white">{hasPassword ? '••••••••' : 'Not Set'}</div>
         <button 
           onClick={() => setIsEditing(true)}
           className="text-xs text-green-700 dark:text-green-400 font-medium hover:text-green-900 dark:hover:text-green-300 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 px-2.5 py-1 rounded transition-colors"
         >
-          Edit
+          Reset
         </button>
       </div>
     );

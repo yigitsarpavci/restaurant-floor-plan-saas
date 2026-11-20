@@ -3,65 +3,76 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
+import { requireSession } from '@/lib/authz';
+import {
+  MIN_PASSWORD_LENGTH,
+  hashPassword,
+  verifyAdminPassword,
+  verifyPassword,
+} from '@/lib/password';
+import { SESSION_COOKIE, SESSION_MAX_AGE_SECONDS, SessionPayload, signSession } from '@/lib/session';
+
+async function startSession(payload: SessionPayload) {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, await signSession(payload), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  });
+}
 
 export async function login(username: string, password?: string) {
-  const cookieStore = await cookies();
+  const invalid = new Error('Invalid username or password');
 
   if (username === 'admin') {
-    cookieStore.set('role', 'admin', { path: '/' });
+    if (!verifyAdminPassword(password)) throw invalid;
+    await startSession({ role: 'admin' });
     redirect('/manage');
   }
 
-  // Look up tenant by slug (username)
-  const tenant = await prisma.tenant.findUnique({
-    where: { slug: username }
-  });
+  const tenant = await prisma.tenant.findUnique({ where: { slug: username } });
+  if (!tenant) throw invalid;
 
-  if (!tenant) {
-    throw new Error('Restaurant not found');
+  const { ok, needsRehash } = await verifyPassword(password ?? '', tenant.password);
+  if (!ok) throw invalid;
+
+  if (needsRehash) {
+    await prisma.tenant.update({
+      where: { id: tenant.id },
+      data: { password: await hashPassword(password as string) },
+    });
   }
 
-  // Validate password
-  if (tenant.password !== password) {
-    throw new Error('Incorrect password');
-  }
-
-  cookieStore.set('role', 'owner', { path: '/' });
-  cookieStore.set('tenantId', tenant.id, { path: '/' });
-  
+  await startSession({ role: 'owner', tenantId: tenant.id });
   redirect('/liveops');
 }
 
 export async function logout() {
   const cookieStore = await cookies();
-  cookieStore.delete('role');
-  cookieStore.delete('tenantId');
+  cookieStore.delete(SESSION_COOKIE);
   redirect('/');
 }
 
 export async function changePassword(oldPassword: string, newPassword: string) {
-  const cookieStore = await cookies();
-  const tenantId = cookieStore.get('tenantId')?.value;
-
-  if (!tenantId) {
-    throw new Error('Not authenticated');
+  const session = await requireSession();
+  if (session.role !== 'owner' || !session.tenantId) {
+    throw new Error('Only restaurant owners can change their password here');
+  }
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    throw new Error(`New password must be at least ${MIN_PASSWORD_LENGTH} characters`);
   }
 
-  const tenant = await prisma.tenant.findUnique({
-    where: { id: tenantId }
-  });
+  const tenant = await prisma.tenant.findUnique({ where: { id: session.tenantId } });
+  if (!tenant) throw new Error('Tenant not found');
 
-  if (!tenant) {
-    throw new Error('Tenant not found');
-  }
-
-  if (tenant.password !== oldPassword) {
-    throw new Error('Incorrect current password');
-  }
+  const { ok } = await verifyPassword(oldPassword, tenant.password);
+  if (!ok) throw new Error('Incorrect current password');
 
   await prisma.tenant.update({
-    where: { id: tenantId },
-    data: { password: newPassword }
+    where: { id: tenant.id },
+    data: { password: await hashPassword(newPassword) },
   });
 
   return { success: true };
