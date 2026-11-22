@@ -1,16 +1,10 @@
 # Restaurant Operations & Table Management SaaS
 
-[![Coverage](https://img.shields.io/badge/coverage-98%25%20security%20layer-brightgreen)](#testing)
 [![CI](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/actions/workflows/ci.yml)
-[![Security: CodeQL | Dependabot](https://img.shields.io/badge/Security-CodeQL%20%7C%20Dependabot%20%7C%20Secret%20scanning-success?logo=github)](https://github.com/yigitsarpavci/restaurant-floor-plan-saas/security)
+[![Coverage](https://img.shields.io/badge/coverage-98%25%20security%20layer-brightgreen)](#testing)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black?logo=next.js&logoColor=white)](#tech-stack)
-[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?logo=typescript&logoColor=white)](#tech-stack)
-[![PostgreSQL | Prisma](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20Prisma-336791?logo=postgresql&logoColor=white)](#tech-stack)
-[![Zustand](https://img.shields.io/badge/State-Zustand-443E38)](#tech-stack)
-[![Tailwind CSS](https://img.shields.io/badge/Styling-Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white)](#tech-stack)
 
-A modern, multi-tenant SaaS platform designed for restaurants to manage floor plans, reservations, and live operations in real-time. Built with Next.js 16 (App Router), Prisma, and Zustand for highly interactive drag-and-drop table management.
+A multi-tenant restaurant app: each restaurant designs its floor plan on a drag-and-drop canvas, guests request tables on a public booking page, and hosts run the evening from a live view with a pending-request queue, walk-ins, merged tables and no-show alerts. Next.js 16 server actions, Prisma and PostgreSQL.
 
 ---
 
@@ -38,15 +32,13 @@ Captured from a production build with the seeded `demo` restaurant.
 
 ---
 
-## Tech Stack
+## What It Does
 
-- **Framework:** [Next.js 16 (App Router)](https://nextjs.org/)
-- **Language:** [TypeScript](https://www.typescriptlang.org/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **State Management:** [Zustand](https://zustand-demo.pmnd.rs/) for complex global UI state.
-- **Database:** PostgreSQL (via [Prisma ORM](https://www.prisma.io/))
-- **Interactive UI:** `react-rnd` for drag-and-drop floor plan building.
-- **Validation:** Zod for robust schema validation.
+- **Tenants.** A platform admin creates restaurants; each gets a slug, an owner login and its own floor plans and reservations. Every server action checks that the caller owns the tenant it touches (`lib/authz.ts`).
+- **Floor-plan designer.** Tables (rectangle, circle, square, booth) are dragged and resized with `react-rnd`; positions and sizes are saved per table. Floor-plan state is held in a Zustand store while editing.
+- **Public booking.** A guest picks a date, time and party size; tables are shown as available, partly available (free until the next booking) or booked, too-small tables are disabled, and the request lands in the owner's queue as `PENDING_APPROVAL`. Inputs are validated with Zod.
+- **Live operations.** The host approves or rejects requests, seats walk-ins, merges several tables into one reservation (a many-to-many relation), clears tables, and gets alerts for no-shows and overstays.
+- **Reservation modes.** `TIMED` bookings carry an end time; `UNTIMED` ones hold the table until it is cleared.
 
 ---
 
@@ -83,44 +75,20 @@ stateDiagram-v2
 
 ---
 
-## Core Features
+## Design Decisions & Trade-offs
 
-- **Multi-Tenant Architecture:** Secure isolation between different restaurant tenants using slug-based routing (`/manage/[tenantSlug]`).
-- **Interactive Floor Plan Builder:** 
-    - Drag, drop, and resize tables using `react-rnd`.
-    - Support for multiple table shapes (Rectangle, Circle, Square, Booth).
-    - Real-time coordinate (`x`, `y`) and dimension saving.
-- **Live-Ops Dashboard:**
-    - Live view of the floor plan for hosts and waitstaff.
-    - Walk-in management and pending reservation queues.
-    - Status tracking (Pending, Confirmed, Seated, Cleared, No-Show).
-- **Reservation System:**
-    - Support for both TIMED and UNTIMED reservation modes.
-    - Advanced Table Merging: Assign multiple tables to a single large reservation using a Many-to-Many Prisma relationship.
-- **Modern UI:** Clean, highly responsive interface with custom theme toggling (Dark/Light mode).
+- **Server actions instead of a REST API.** Every mutation is a typed server action with its own authorization check, so there is no separate API to secure or version. The cost is that only this Next.js app can be a client.
+- **Tenant isolation in application code.** Rows carry a `tenantId` and the guards in `lib/authz.ts` enforce ownership on every action. This is simple and fully unit-tested, but a forgotten guard would leak data; PostgreSQL row-level security would be a second line of defence.
+- **Signed cookie sessions.** The role and tenant come from a `jose`-signed, HTTP-only cookie, never from a client-editable value, and need no session store.
+- **Errors as values for login.** Production builds redact messages thrown from server actions, so `login` returns its error instead of throwing; the end-to-end test caught the generic message users were seeing before.
+- **Accessible floor plan.** Bookable tables are keyboard-operable buttons labelled with name, capacity and availability, which also gives the end-to-end tests a stable target.
 
----
+## Known Limitations
 
-## Folder Structure
-
-```text
-├── prisma/
-│   └── schema.prisma    # Database models (Tenant, FloorPlan, Table, Reservation)
-├── app/                 # Next.js App Router
-│   ├── actions/         # Server Actions (auth, booking, floor-plan, tenant)
-│   ├── booking/         # Customer-facing booking flows
-│   ├── liveops/         # Live operations dashboard
-│   ├── manage/          # Admin/Tenant management console
-│   └── globals.css      # Global styles and Tailwind directives
-├── components/
-│   ├── booking/         # Booking dialogs and customer views
-│   ├── floor-plan/      # Canvas, Builder, and Properties panel
-│   ├── live-ops/        # Walk-in bars, alerts, and live queues
-│   └── manage/          # Tenant creation and administration UI
-├── lib/                 # Shared utilities and helpers
-├── middleware.ts        # Global Route Protection and redirection
-└── package.json         # Project dependencies and scripts
-```
+- **Availability is coarse.** A table is "booked" for a requested time if any reservation that day starts at or before it, and an untimed booking runs to the end of the day; `TIMED` end times are not yet used when checking availability.
+- **No push updates.** The live view refreshes after actions and navigation; a second host's changes appear on the next refresh (SSE or WebSockets would fix this).
+- **Times use the server's time zone,** so a restaurant in another zone than the server would see shifted slots.
+- **No email or SMS** confirmations; the guest only sees the on-screen confirmation.
 
 ---
 
@@ -176,34 +144,24 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **Hashed passwords:** restaurant passwords are stored with bcrypt. Legacy plaintext rows are upgraded transparently on first successful login.
 - **Authorization on every Server Action:** tenant management is admin-only; floor-plan, reservation and live-ops actions verify the caller owns the tenant (`lib/authz.ts`). Public guests can only create reservations.
 - **Fail-fast configuration:** the app refuses to sign sessions in production without `SESSION_SECRET`, and the admin login is disabled without `ADMIN_PASSWORD`.
-- Covered by `npm test` (Vitest, 21 tests): password hashing and legacy-hash upgrade, admin password check, session signing/tampering, the tenant/reservation/floor-plan authorization guards, and Zod booking validation. Runs in CI on every push.
 
 ---
 
 ## Testing
 
 ```bash
-npm test              # Vitest: authorization guards, password hashing, sessions, booking validation (21 tests)
-npm run test:coverage # same, with a coverage gate (98% of lib/, the security and validation layer; CI fails below 80%)
-npm run build # production build, also run in CI
+npm test               # Vitest unit tests (21)
+npm run test:coverage  # with a coverage gate on lib/ (98%; CI fails below 80%)
+npm run build && npm run test:e2e   # Playwright, needs a seeded database
 ```
 
-GitHub Actions runs both on every push (see the CI badge above).
+- **Unit (Vitest, 21 tests):** bcrypt hashing and the legacy-hash upgrade, the admin password check, session signing and tamper detection, the tenant / reservation / floor-plan authorization guards, and Zod booking validation.
+- **End-to-end (Playwright, 2 tests):** a guest books a table on `/booking/demo` and the owner, after signing in, sees the request in the live-ops queue; `/liveops` redirects without a session and a wrong password shows a clear error.
+
+CI runs the unit tests with the coverage gate, a production build, the Playwright suite against a PostgreSQL service with seeded data, and a Docker image build on every push. CodeQL and Dependabot run on the repository.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## Author
-
-**Yiğit Sarp Avcı**  
-Computer Engineering Student @ Boğaziçi University  
-[GitHub Profile](https://github.com/yigitsarpavci) · [LinkedIn](https://www.linkedin.com/in/yigitsarpavci)
-
----
-
-*Developed by Yiğit Sarp Avcı*
+[MIT](LICENSE) · Yiğit Sarp Avcı · [GitHub](https://github.com/yigitsarpavci) · [LinkedIn](https://www.linkedin.com/in/yigitsarpavci)
