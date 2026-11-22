@@ -23,20 +23,22 @@ async function startSession(payload: SessionPayload) {
   });
 }
 
-export async function login(username: string, password?: string) {
-  const invalid = new Error('Invalid username or password');
+// Returns an error value instead of throwing: production builds replace thrown server-action
+// messages with a generic digest, so a thrown "Invalid username or password" never reaches the UI.
+export async function login(username: string, password?: string): Promise<{ error: string } | void> {
+  const invalid = { error: 'Invalid username or password' };
 
   if (username === 'admin') {
-    if (!verifyAdminPassword(password)) throw invalid;
+    if (!verifyAdminPassword(password)) return invalid;
     await startSession({ role: 'admin' });
     redirect('/manage');
   }
 
   const tenant = await prisma.tenant.findUnique({ where: { slug: username } });
-  if (!tenant) throw invalid;
+  if (!tenant) return invalid;
 
   const { ok, needsRehash } = await verifyPassword(password ?? '', tenant.password);
-  if (!ok) throw invalid;
+  if (!ok) return invalid;
 
   if (needsRehash) {
     await prisma.tenant.update({

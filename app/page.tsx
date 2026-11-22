@@ -16,7 +16,11 @@ export default function LoginPage() {
     setError('');
     
     try {
-      await login(username.toLowerCase(), password);
+      const result = await login(username.toLowerCase(), password);
+      if (result?.error) {
+        setError(result.error);
+        setLoading(false);
+      }
     } catch (err: any) {
       if (err.message === 'NEXT_REDIRECT') {
         throw err;

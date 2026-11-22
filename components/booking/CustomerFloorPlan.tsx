@@ -59,9 +59,20 @@ export default function CustomerFloorPlan({ tables, guestCount, onTableSelect }:
     <div className="relative w-full h-[600px] bg-white border border-gray-200 rounded-xl overflow-hidden mt-6 shadow-inner">
       {tables.map(table => {
         const tooSmall = table.capacity < guestCount;
+        const selectable = table.status !== 'BOOKED' && !tooSmall;
         return (
           <div
             key={table.id}
+            role="button"
+            tabIndex={selectable ? 0 : -1}
+            aria-disabled={!selectable}
+            aria-label={`Table ${table.name}, seats ${table.capacity}${selectable ? '' : ', unavailable'}`}
+            onKeyDown={(e) => {
+              if (selectable && (e.key === 'Enter' || e.key === ' ')) {
+                e.preventDefault();
+                onTableSelect(table);
+              }
+            }}
             className={getShapeClasses(table)}
             style={{
               left: table.x,
@@ -70,9 +81,7 @@ export default function CustomerFloorPlan({ tables, guestCount, onTableSelect }:
               height: table.height,
             }}
             onClick={() => {
-              if (table.status !== 'BOOKED' && !tooSmall) {
-                onTableSelect(table);
-              }
+              if (selectable) onTableSelect(table);
             }}
           >
             <div className="flex flex-col items-center select-none pointer-events-none">

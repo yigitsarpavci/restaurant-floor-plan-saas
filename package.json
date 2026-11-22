@@ -13,7 +13,8 @@
     "postinstall": "prisma generate",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "seed": "prisma db seed"
+    "seed": "prisma db seed",
+    "test:e2e": "playwright test"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +32,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^26.1.2",
     "@types/react": "^19.3.0",

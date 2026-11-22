@@ -37,3 +37,8 @@ next-env.d.ts
 docs/*
 !docs/screenshots/
 coverage/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
